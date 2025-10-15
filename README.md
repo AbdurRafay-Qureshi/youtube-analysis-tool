@@ -19,7 +19,8 @@ A powerful Python and Streamlit-based tool to fetch and visualize public YouTube
 Dro<img width="1918" height="1084" alt="Screenshot3" src="https://github.com/user-attachments/assets/acbf42f3-fb45-4a40-95f5-35daf00422d2" />
 <img width="1920" height="1078" alt="Screenshot1" src="https://github.com/user-attachments/assets/400e6c46-1352-4807-94e5-9214c30574ee" />
 <img width="1918" height="1081" alt="Screenshot2" src="https://github.com/user-attachments/assets/50acf800-ef7a-4b14-8e0d-4d578bf1f6ef" />
-p a screenshot of your application dashboard here to showcase the channel overview and top-performing videos!
+<img width="1912" height="1083" alt="ss4" src="https://github.com/user-attachments/assets/0568fa35-d4d5-48ff-ac68-70e20b7b2950" />
+
 
 ## 🛠️ Getting Started (The Easy Way)
 
