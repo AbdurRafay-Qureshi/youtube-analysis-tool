@@ -28,25 +28,13 @@ A powerful Python and Streamlit-based tool to fetch and visualize public YouTube
 
 Follow these steps to set up and run the tool.
 
-### Option A: Clone the Repository
+### Clone the Repository
 The quickest way to get started:
 
 ```bash
-git clone <this-repository-url>
-cd youtube-channel-analysis-tool
+git clone https://github.com/AbdurRafay-Qureshi/youtube-analysis-tool.git
+cd youtube-analysis-tool
 ```
-
-Then, proceed to **Step 2: Create a Virtual Environment**.
-
-### Option B: Set Up a New Repository
-If you prefer creating a fresh project using GitHub Desktop:
-
-1. **Create the Repo**: Complete the repository setup in GitHub Desktop.
-2. **Add Files**: Copy `main.py`, `youtube.py`, `requirements.txt`, and `start.bat` into the repository's local folder.
-3. **Commit Files**: In GitHub Desktop, write a commit message (e.g., "Initial commit") and click "Commit".
-4. **Publish (Optional)**: Click "Publish repository" to share it on your GitHub profile.
-
-Now, move to the setup steps below.
 
 ---
 
@@ -71,7 +59,7 @@ source venv/bin/activate
 ```
 
 ### Step 3: Install Dependencies
-With the virtual environment active, install the required libraries:
+With the virtual environment active, install the required libraries using terminal:
 
 ```bash
 pip install -r requirements.txt
