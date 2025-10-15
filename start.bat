@@ -15,7 +15,7 @@ echo  Your browser should open automatically.
 echo  If it doesn't, open it and go to one of the URLs below.
 echo.
 
-streamlit run main.py
+python -m streamlit run main.py
 
 echo.
 echo =========================================================
