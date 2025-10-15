@@ -1,0 +1,6 @@
+streamlit==1.30.0
+pandas==2.1.4
+plotly==5.18.0
+google-api-python-client==2.110.0
+isodate==0.6.1
+statsmodels==0.14.0
