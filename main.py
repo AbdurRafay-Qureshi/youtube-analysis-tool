@@ -5,6 +5,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from tabs import render_top_videos_tab, render_upload_schedule_tab
+from tabs import render_top_videos_tab, render_upload_schedule_tab, render_insights_tab
 from youtube import YouTubeChannelAnalyser
 from engagement_calculator import EngagementCalculator
 
@@ -359,150 +361,13 @@ if "channel_stats" in st.session_state and st.session_state.get("platform") == "
         tab1, tab2, tab3, tab4 = st.tabs(["Top Videos", "Upload Schedule", "Insights", "Data Table"])
 
         with tab1:
-            cont = chart_card("Top 10 by Metric")
-            sort_by = st.selectbox(
-                "Sort by",
-                ["view_count", "like_count", "comment_count", "engagement_rate"],
-                format_func=lambda s: s.replace("_", " ").title(),
-                key="sort_top",
-            )
-            top = df.nlargest(10, sort_by)
-            
-            fig = px.bar(
-                top,
-                y="title",
-                x=sort_by,
-                orientation="h",
-                color="engagement_rate",
-                color_continuous_scale="Blues",
-                title=None,
-            )
-            
-            fig.update_traces(
-                hovertemplate='<b>%{y}</b><br><br>' +
-                              'Views: %{customdata[0]:,}<br>' +
-                              'Likes: %{customdata[1]:,}<br>' +
-                              'Comments: %{customdata[2]:,}<br>' +
-                              'Engagement: %{customdata[3]:.2f}%' +
-                              '<extra></extra>',
-                customdata=top[['view_count', 'like_count', 'comment_count', 'engagement_rate']].values
-            )
-            
-            fig.update_layout(**plotly_layout(), height=520)
-            fig.update_yaxes(categoryorder="total ascending", tickfont=dict(size=10))
-            st.plotly_chart(fig, use_container_width=True, key="chart_top10")
-            end_card()
+            render_top_videos_tab(df)
 
         with tab2:
-            a, b = st.columns(2)
-            with a:
-                cont = chart_card("Uploads by Day")
-                day_counts = df["publish_day"].value_counts().reindex(
-                    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-                )
-                fig = px.bar(
-                    day_counts, 
-                    labels={"index": "Day", "value": "Uploads"}, 
-                    color=day_counts.values,
-                    color_continuous_scale="Blues"
-                )
-                fig.update_layout(**plotly_layout(), height=350)
-                st.plotly_chart(fig, use_container_width=True, key="chart_day")
-                end_card()
-            with b:
-                cont = chart_card("Uploads by Hour (UTC)")
-                hour_counts = df["publish_hour"].value_counts().sort_index()
-                fig = px.line(hour_counts, markers=True)
-                fig.update_traces(line_color="#2563EB", line_width=2.5)
-                fig.update_layout(**plotly_layout(), height=350)
-                st.plotly_chart(fig, use_container_width=True, key="chart_hour")
-                end_card()
+            render_upload_schedule_tab(df)
 
         with tab3:
-            if not df.empty:
-                from insights import YouTubeInsights
-                insights = YouTubeInsights(df, stats)
-                
-                chart_choice = st.selectbox(
-                    "Choose Analysis", 
-                    [
-                        "Growth Timeline",
-                        "Best Performing Days",
-                        "Video Length Analysis",
-                        "Engagement Heatmap",
-                        "Performance Matrix",
-                        "Upload Consistency"
-                    ],
-                    key="insights_choice"
-                )
-                
-                cont = chart_card(chart_choice)
-                with cont:
-                    try:
-                        if chart_choice == "Growth Timeline":
-                            st.markdown("*Track your channel's cumulative growth over time*")
-                            fig = insights.growth_timeline()
-                            fig.update_layout(**plotly_layout())
-                            st.plotly_chart(fig, use_container_width=True, key=f"insight_{chart_choice}")
-                        
-                        elif chart_choice == "Best Performing Days":
-                            st.markdown("*Discover which days get the best results*")
-                            fig = insights.best_performing_timeframes()
-                            fig.update_layout(**plotly_layout())
-                            st.plotly_chart(fig, use_container_width=True, key=f"insight_{chart_choice}")
-                        
-                        elif chart_choice == "Video Length Analysis":
-                            st.markdown("*Find the optimal video duration for your audience*")
-                            fig, df_bins = insights.video_length_performance()
-                            fig.update_layout(**plotly_layout())
-                            st.plotly_chart(fig, use_container_width=True, key=f"insight_{chart_choice}")
-                            
-                            st.markdown("#### 📋 Video Length Breakdown")
-                            length_table = df_bins[['title', 'duration_category', 'duration_seconds', 'view_count', 'engagement_rate']].copy()
-                            length_table = length_table.sort_values('duration_seconds', ascending=False)
-                            display_table = length_table[['title', 'duration_category', 'view_count', 'engagement_rate']].copy()
-                            display_table['duration_category'] = display_table['duration_category'].astype(str)
-                            display_table.columns = ['Video Title', 'Duration', 'Views', 'Engagement %']
-                            
-                            st.dataframe(
-                                display_table,
-                                use_container_width=True,
-                                height=300,
-                                hide_index=True,
-                                column_config={
-                                    "Video Title": st.column_config.TextColumn("Video Title", width="large"),
-                                    "Duration": st.column_config.TextColumn("Duration", width="small"),
-                                    "Views": st.column_config.NumberColumn("Views", format="%d"),
-                                    "Engagement %": st.column_config.NumberColumn("Engagement %", format="%.2f%%")
-                                }
-                            )
-                        
-                        elif chart_choice == "Engagement Heatmap":
-                            st.markdown("*See when your audience is most engaged (darker = better)*")
-                            st.info("💡 Tip: Upload when squares are darker for better engagement!")
-                            fig = insights.engagement_heatmap()
-                            fig.update_layout(**plotly_layout())
-                            st.plotly_chart(fig, use_container_width=True, key=f"insight_{chart_choice}")
-                        
-                        elif chart_choice == "Performance Matrix":
-                            st.markdown("*Identify your star videos and improvement opportunities*")
-                            fig = insights.performance_matrix()
-                            fig.update_layout(**plotly_layout())
-                            st.plotly_chart(fig, use_container_width=True, key=f"insight_{chart_choice}")
-                        
-                        else:
-                            st.markdown("*Monitor your upload schedule consistency*")
-                            st.info("💡 Tip: Lower and more consistent = better for algorithm")
-                            fig = insights.consistency_score()
-                            fig.update_layout(**plotly_layout())
-                            st.plotly_chart(fig, use_container_width=True, key=f"insight_{chart_choice}")
-                        
-                    except Exception as e:
-                        st.error(f"Error creating chart: {str(e)}")
-                        st.exception(e)
-                end_card()
-            else:
-                info_card("Insights", "Analyze your content with practical, actionable insights")
+            render_insights_tab(df, stats)
 
         with tab4:
             cont = chart_card("Dataset")
@@ -841,36 +706,39 @@ elif "reddit_data" in st.session_state and st.session_state.get("platform") == "
             a, b = st.columns(2)
             with a:
                 cont = chart_card("Posts by Hour")
-                if 'created_utc' in posts_df.columns:
-                    posts_df['hour'] = pd.to_datetime(posts_df['created_utc'], unit='s', errors='coerce').dt.hour
-                    hour_counts = posts_df['hour'].value_counts().sort_index()
-                    fig = px.line(hour_counts, markers=True)
-                    fig.update_traces(line_color="#FF4500", line_width=2.5)
-                    fig.update_layout(**plotly_layout(), height=350)
-                    st.plotly_chart(fig, use_container_width=True)
+                with cont:
+                    if 'created_utc' in posts_df.columns:
+                        posts_df['hour'] = pd.to_datetime(posts_df['created_utc'], unit='s', errors='coerce').dt.hour
+                        hour_counts = posts_df['hour'].value_counts().sort_index()
+                        fig = px.line(hour_counts, markers=True)
+                        fig.update_traces(line_color="#FF4500", line_width=2.5)
+                        fig.update_layout(**plotly_layout(), height=350)
+                        st.plotly_chart(fig, use_container_width=True)
                 end_card()
             
             with b:
                 cont = chart_card("Posts by Day")
-                if 'created_utc' in posts_df.columns:
-                    posts_df['day_name'] = pd.to_datetime(posts_df['created_utc'], unit='s', errors='coerce').dt.day_name()
-                    day_counts = posts_df['day_name'].value_counts().reindex(
-                        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-                        fill_value=0
-                    )
-                    fig = px.bar(day_counts, color=day_counts.values, color_continuous_scale="Oranges")
-                    fig.update_layout(**plotly_layout(), height=350)
-                    st.plotly_chart(fig, use_container_width=True)
+                with cont:
+                    if 'created_utc' in posts_df.columns:
+                        posts_df['day_name'] = pd.to_datetime(posts_df['created_utc'], unit='s', errors='coerce').dt.day_name()
+                        day_counts = posts_df['day_name'].value_counts().reindex(
+                            ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                            fill_value=0
+                        )
+                        fig = px.bar(day_counts, color=day_counts.values, color_continuous_scale="Oranges")
+                        fig.update_layout(**plotly_layout(), height=350)
+                        st.plotly_chart(fig, use_container_width=True)
                 end_card()
         
         else:  # User
             cont = chart_card("Activity Across Subreddits")
-            if 'subreddit' in posts_df.columns:
-                subreddit_counts = posts_df['subreddit'].value_counts().head(10)
-                fig = px.bar(subreddit_counts, orientation='h')
-                fig.update_traces(marker_color="#FF4500")
-                fig.update_layout(**plotly_layout(), height=400)
-                st.plotly_chart(fig, use_container_width=True)
+            with cont:
+                if 'subreddit' in posts_df.columns:
+                    subreddit_counts = posts_df['subreddit'].value_counts().head(10)
+                    fig = px.bar(subreddit_counts, orientation='h')
+                    fig.update_traces(marker_color="#FF4500")
+                    fig.update_layout(**plotly_layout(), height=400)
+                    st.plotly_chart(fig, use_container_width=True)
             end_card()
     
     with tab3:
